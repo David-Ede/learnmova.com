@@ -420,7 +420,6 @@
       <button id="tabLibrary" class="tab">Library</button>
     </div>
     <div class="stats">
-      <div class="pill heart"><span>❤️</span><span id="tbHearts" style="margin-left:6px">5</span></div>
       <div class="pill xp"><span>⭐</span><span id="tbXP" style="margin-left:6px">0</span></div>
       <div class="pill streak"><span>🔥</span><span id="tbStreak" style="margin-left:6px">0</span></div>
       <button id="btnStartNext" class="btn primary">Start Next Lesson</button>
@@ -659,7 +658,7 @@
   </nav>
 
   <footer>
-    Offline, privacy‑friendly course. Voices, streak, and hearts are stored in your browser.
+    Offline, privacy‑friendly course. Voices and streak are stored in your browser.
   </footer>
 
 <script>
@@ -1529,7 +1528,7 @@ const SKILLS = [
 /* ========================
    TOPBAR & HOME
    ======================== */
-function renderTopbar(){ refreshDaily(); $('#tbXP').textContent = profile.xp; $('#tbStreak').textContent = profile.streak; $('#tbHearts').textContent = CURRENT.hearts; }
+function renderTopbar(){ refreshDaily(); $('#tbXP').textContent = profile.xp; $('#tbStreak').textContent = profile.streak; }
 function renderHomeHero(){
   $('#dailyGoal').textContent = profile.dailyGoal;
   const pct = Math.min(100, Math.round((profile.xpToday/profile.dailyGoal)*100)); const ring = $('#dailyRing'); ring.style.setProperty('--p', pct+'%'); ring.textContent = Math.min(profile.dailyGoal, profile.xpToday);
@@ -1776,7 +1775,7 @@ function setView(id){
   // close mobile nav if open
   try{ document.body.classList.remove('nav-open'); const nt = document.getElementById('btnNavToggle'); if(nt) nt.setAttribute('aria-expanded','false'); }catch(e){}
 }
-function renderHearts(){ const wrap = $('#hearts'); wrap.innerHTML = ""; for(let i=0;i<5;i++){ const d = document.createElement('div'); d.className = 'h '+(i<CURRENT.hearts?'on':''); wrap.appendChild(d); } $('#tbHearts').textContent = CURRENT.hearts; }
+function renderHearts(){ const wrap = $('#hearts'); if(!wrap) return; wrap.innerHTML = ""; for(let i=0;i<5;i++){ const d = document.createElement('div'); d.className = 'h '+(i<CURRENT.hearts?'on':''); wrap.appendChild(d); } }
 function renderSegments(){
   const wrap = $('#segments'); wrap.innerHTML = "";
   const res = Array.isArray(CURRENT.results) ? CURRENT.results : [];
