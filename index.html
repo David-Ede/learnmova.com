@@ -10,7 +10,7 @@
     --duo-green:#7FE12E; /* original gradient green color #58CC02 */
     --duo-green-2:#7FE12E;
     --duo-dark:#071B0C;
-    --color-text:#0e1318;
+    --color-text:#eaf0f6;
     --duo-muted:#6b7580;
     --panel:#ffffff;
     --bg:#F7F9FB;
@@ -18,23 +18,25 @@
     --purple:#7c4dff;
     --gold:#ffb300;
     --red:#ff4b4b;
-    --blue:#1cb0f6;
+    --blue:#49c1ff;
+    --UL-gold:#fcc812;
+    --UL-blue:#2960c4;
     --shadow:0 14px 40px rgba(10,20,30,.08);
     --radius:18px;
     --radius-sm:12px;
     --font: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji";
     --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
     /* Primary button color tokens (centralized for theming) */
-    --primary-start: #49c1ff;
-    --primary-end: #49c1ff;
+    --primary-start: var(--UL-blue);
+    --primary-end: var(--UL-blue);
     --primary-foreground: #000; /* button text color on primary background (black) */
     /* Tip box theme tokens */
     --tip-bg: #fff7e6;
     --tip-border: #ffe0a3;
     --tip-color: var(--color-text);
     /* Primary CTA (Start Next) tokens, used by button and skill ring */
-    --cta-start: var(--duo-green);
-    --cta-end: var(--duo-green);
+    --cta-start: var(--UL-gold);
+    --cta-end: var(--UL-gold);
   }
   @media (prefers-color-scheme: dark){
     :root{
@@ -76,23 +78,31 @@
     --tip-color: var(--color-text);
   }
   html,body{height:100%}
-  body{ margin:0; background:linear-gradient(180deg,var(--bg),var(--bg)); color:var(--color-text); font-family:var(--font); }
+  /* Make background a solid color to avoid seams when pinch-zooming on mobile */
+  body{ margin:0; background-color:var(--bg); min-height:100vh; color:var(--color-text); font-family:var(--font); }
   /* Topbar */
+  /* Topbar: fixed on all viewports for predictable sizing/overlay on mobile
+     Use safe-area insets and responsive padding so zooming/resize keeps layout consistent */
   .topbar{
-    position:sticky; top:0; z-index:7;
+    position:fixed; top:0; left:0; right:0; z-index:100;
     display:flex; align-items:center; justify-content:space-between;
-    gap:12px; padding:12px clamp(14px,3vw,28px);
+    gap:12px; padding:calc(12px + env(safe-area-inset-top, 0px)) clamp(14px,3vw,28px);
     background:rgba(255,255,255,.65); backdrop-filter: blur(10px);
     border-bottom:1px solid var(--border);
+    will-change:transform;
   }
   @media (prefers-color-scheme: dark){ .topbar{ background:rgba(0,0,0,.25) } }
   .logo{ display:flex; gap:10px; align-items:center; font-weight:900; letter-spacing:.2px }
   .logo-badge{
-    width:38px; height:24px; border-radius:6px;
+    /* responsive badge sizing so topbar scales smoothly on small screens */
+    width: clamp(30px, 9vw, 38px);
+    height: clamp(18px, 6vw, 24px);
+    border-radius: clamp(6px, 2vw, 8px);
     background: linear-gradient(180deg, #005bbb 0% 50%, #ffd500 50% 100%);
     border:2px solid #ffffff;
     box-shadow: 0 4px 10px rgba(0,0,0,.12);
     cursor:pointer;
+    display:inline-flex; align-items:center; justify-content:center;
   }
   .topbar .stats{ display:flex; gap:12px; align-items:center }
   .pill{
@@ -148,6 +158,9 @@
 
   /* Views */
   main{ max-width:1150px; margin:16px auto; padding:0 clamp(14px,3vw,28px) 90px; }
+  /* Reserve space for the fixed topbar so content isn't hidden underneath it */
+  :root{ --topbar-space:72px; }
+  main{ padding-top: var(--topbar-space); }
   .view{ display:none; } .view.active{ display:block; }
 
   /* Home */
@@ -359,7 +372,7 @@
 
 /* Mobile & small-screen adjustments */
 @media (max-width:700px){
-  :root{ --radius:14px; --radius-sm:10px; }
+  :root{ --radius:14px; --radius-sm:10px; /* reduce topbar reserved space on small screens */ --topbar-space: calc(56px + env(safe-area-inset-top, 0px)); }
   body{ font-size:15px; }
   .topbar{ padding:8px 12px; gap:8px; }
   .logo{ font-size:1rem }
