@@ -123,7 +123,7 @@
   /* Make sure primary button foreground stays the designated color in dark theme too */
   [data-theme="dark"] .btn.blue{ color: var(--primary-foreground) }
   @media (prefers-color-scheme: dark){ .btn.blue{ color: var(--primary-foreground) } }
-  .btn.ghost{ background:transparent; border:2px solid var(--border) }
+  .btn.ghost{ background:transparent; border:2px solid var(--border); color: var(--color-text) }
   .btn.red{ background: linear-gradient(180deg, #ff6a6a, #ff4b4b); color:#fff }
   .btn:disabled{ opacity:.6; cursor:not-allowed }
   /* Ensure buttons use the shared text color variable */
@@ -329,8 +329,8 @@
   .badge{ font-size:.8rem; border:1px solid var(--border); padding:3px 8px; border-radius:999px; color:var(--duo-muted) }
   footer{ padding:24px; color:var(--duo-muted); text-align:center }
 
-  /* Practice buttons should use the shared .btn.blue class; no per-view overrides */
-  #grammar .btn{ color: #000 }
+  /* Practice / Play buttons should inherit the theme-aware text color; avoid forcing black */
+  #play .btn{ color: var(--color-text) }
 
   /* Library uses the shared .btn.blue class; no library-specific overrides needed */
 
@@ -451,8 +451,8 @@
     <button id="btnNavToggle" class="btn" aria-expanded="false" aria-label="Toggle navigation" title="Open navigation">☰</button>
     <div class="tabbar">
       <button id="tabHome" class="tab active">Home</button>
-      <button id="tabPractice" class="tab">Practice</button>
-      <button id="tabGrammar" class="tab">Grammar</button>
+  <button id="tabPractice" class="tab">Practice</button>
+  <button id="tabPlay" class="tab">Play</button>
       <button id="tabLibrary" class="tab">Library</button>
     </div>
     <div class="stats">
@@ -493,6 +493,8 @@
       </div>
 
       <div id="path" class="path-grid"></div>
+      </div>
+
     </section>
 
     <!-- PRACTICE VIEW -->
@@ -530,17 +532,32 @@
           <button id="btnMixed" class="btn blue">Start Mixed Review</button>
         </div>
       </div>
+      <!-- GRAMMAR HUB (moved into Practice) -->
+      <section id="grammarHub" class="view-subsection" style="margin-top:18px">
+        <h3 style="margin:0 0 8px 0">Grammar Hub</h3>
+        <p class="muted" style="margin-top:6px">Browse clear, bite‑size explanations. Open during lessons via the <strong>🧠 Grammar</strong> button.</p>
+        <div class="searchbar" style="margin-top:8px">
+          <input id="gramSearch" type="search" placeholder="Search grammar (e.g., 'accusative', 'present', 'imperatives')">
+          <button id="gramClear" class="btn ghost">Clear</button>
+        </div>
+        <div id="grammarList" class="grid-cards" style="margin-top:10px"></div>
+      </section>
     </section>
 
-    <!-- GRAMMAR HUB VIEW -->
-    <section id="grammar" class="view">
-      <h2 style="margin:0">Grammar Hub</h2>
-      <p class="muted" style="margin-top:6px">Browse clear, bite‑size explanations. Open during lessons via the <strong>🧠 Grammar</strong> button.</p>
-      <div class="searchbar">
-        <input id="gramSearch" type="search" placeholder="Search grammar (e.g., 'accusative', 'present', 'imperatives')">
-        <button id="gramClear" class="btn ghost">Clear</button>
+    <!-- PLAY VIEW (replaces the old Grammar view) -->
+    <section id="play" class="view">
+      <h2 style="margin:0">Play</h2>
+      <p class="muted" style="margin-top:6px">Flashcards and light games to practise vocabulary and grammar.</p>
+      <div class="grid-cards" style="margin-top:12px">
+        <div class="card">
+          <div class="title">Flashcards</div>
+          <div class="muted">Coming soon — flashcard study interface will appear here.</div>
+        </div>
+        <div class="card">
+          <div class="title">Games</div>
+          <div class="muted">Coming soon — lightweight practice games will appear here.</div>
+        </div>
       </div>
-      <div id="grammarList" class="grid-cards"></div>
     </section>
 
     <!-- LIBRARY VIEW -->
@@ -647,7 +664,7 @@
   <div id="alphComplete" style="display:none; text-align:center; padding:18px; margin-top:12px">
     <h2>Congratulations!</h2>
     <p class="muted">Great job — you completed the alphabet practice.</p>
-    <div style="margin-top:12px"><button id="alphCloseComplete" class="btn primary" style="color:#000;">Close</button></div>
+  <div style="margin-top:12px"><button id="alphCloseComplete" class="btn primary" style="color:#000;">Close</button></div>
   </div>
     </div>
   </div>
@@ -680,12 +697,12 @@
       <div class="nav-label">Home</div>
     </button>
     <button class="nav-btn" data-view="#practice" aria-label="Practice">
-      <div class="nav-icon">🎧</div>
+      <div class="nav-icon">🎯</div>
       <div class="nav-label">Practice</div>
     </button>
-    <button class="nav-btn" data-view="#grammar" aria-label="Grammar">
-      <div class="nav-icon">📘</div>
-      <div class="nav-label">Grammar</div>
+    <button class="nav-btn" data-view="#play" aria-label="Play">
+      <div class="nav-icon">🎮</div>
+      <div class="nav-label">Play</div>
     </button>
     <button class="nav-btn" data-view="#library" aria-label="Library">
       <div class="nav-icon">📚</div>
@@ -701,7 +718,7 @@
   <div id="movaWelcomeBanner" class="mova-welcome-banner" role="region" aria-live="polite" style="display:none">
     <div class="msg">Mova: language meets culture — Welcome back! <span id="movaBannerWhen" class="muted"></span></div>
     <div class="cta">
-      <button id="movaOpenIntro" class="btn primary" style="color:#000">Open Intro</button>
+  <button id="movaOpenIntro" class="btn primary" style="color:#000">Open Intro</button>
       <button id="movaDismissBanner" class="btn ghost">Dismiss</button>
     </div>
   </div>
@@ -1838,7 +1855,7 @@ function setView(id){
   if(id==='#home') $('#tabHome').classList.add('active');
   if(id==='#practice') $('#tabPractice').classList.add('active');
   if(id==='#library') $('#tabLibrary').classList.add('active');
-  if(id==='#grammar') $('#tabGrammar').classList.add('active');
+  if(id==='#play') $('#tabPlay').classList.add('active');
   // close mobile nav if open
   try{ document.body.classList.remove('nav-open'); const nt = document.getElementById('btnNavToggle'); if(nt) nt.setAttribute('aria-expanded','false'); }catch(e){}
 }
@@ -2004,7 +2021,7 @@ function closeGrammarPanel(){
   const gp = $('#gpanel'); gp.classList.remove('open'); gp.setAttribute('aria-hidden','true'); gp.dataset.topic="";
 }
 $('#gpClose').addEventListener('click', closeGrammarPanel);
-$('#gpOpenHub').addEventListener('click', ()=>{ closeGrammarPanel(); setView('#grammar'); });
+$('#gpOpenHub').addEventListener('click', ()=>{ closeGrammarPanel(); setView('#practice'); renderGrammarHub(); });
 $('#btnOpenGrammar').addEventListener('click', ()=>{
   const gp = $('#gpanel');
   const isOpen = gp.classList.contains('open');
@@ -2036,7 +2053,7 @@ function openTips(skillId){ const sk = SKILLS.find(s=>s.id===skillId); const mor
    ======================== */
 $('#tabHome').addEventListener('click', ()=> setView('#home'));
 $('#tabPractice').addEventListener('click', ()=> { setView('#practice'); });
-$('#tabGrammar').addEventListener('click', ()=> { setView('#grammar'); renderGrammarHub(); });
+$('#tabPlay').addEventListener('click', ()=> { setView('#play'); });
 $('#tabLibrary').addEventListener('click', ()=> { setView('#library'); openLibrary(); });
 
 function startNext(){ try{ const sk = nextUnlockedSkill(); startLesson(sk.id); }catch(e){ console.error(e); toast("Starting fallback lesson"); startQuickSession({name:"Quick Start", decks:["greetings","basics_core"], steps:8, hearts:5}); } }
