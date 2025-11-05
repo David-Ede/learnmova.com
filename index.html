@@ -408,6 +408,29 @@
 }
 </style>
 </head>
+<!-- Lightweight Mova welcome CSS: modal, banner, reduced-motion support -->
+<style>
+  /* Visually-light, theme-aware welcome UI */
+  .mova-welcome-banner{ position:fixed; left:12px; right:12px; bottom:84px; z-index:60; display:flex; gap:12px; align-items:center; padding:12px 14px; border-radius:12px; box-shadow:var(--shadow); background:var(--panel); border:1px solid var(--border); }
+  .mova-welcome-banner .msg{ font-weight:800; display:flex; gap:8px; align-items:center; }
+  .mova-welcome-banner .cta{ margin-left:auto }
+  .mova-welcome-modal-overlay{ position:fixed; inset:0; background:rgba(0,0,0,.5); display:none; align-items:center; justify-content:center; z-index:1000 }
+  .mova-welcome-modal-overlay.open{ display:flex }
+  .mova-welcome-modal{ width:min(720px, 94vw); background:var(--panel); border-radius:12px; padding:18px; box-shadow:var(--shadow); border:1px solid var(--border); }
+  .mova-welcome-modal h2{ margin:0 0 8px 0; font-size:1.25rem }
+  .mova-welcome-media{ display:flex; gap:12px; align-items:center }
+  .mova-welcome-media img{ max-width:220px; width:220px; height:auto; border-radius:10px; border:1px solid var(--border); }
+  .mova-welcome-controls{ display:flex; gap:8px; align-items:center; margin-top:12px; justify-content:flex-end }
+  .mova-welcome-audio-btn{ padding:8px 12px; border-radius:10px; cursor:pointer }
+  .mova-welcome-optout{ display:flex; gap:8px; align-items:center; font-size:.95rem; margin-top:8px }
+  /* Reduced-motion: avoid flashy transforms/auto-play */
+  @media (prefers-reduced-motion: reduce){
+    .mova-welcome-modal, .mova-welcome-banner{ transition:none; animation:none }
+  }
+  @media (prefers-color-scheme: dark){
+    .mova-welcome-banner{ background:var(--panel); border-color:var(--border) }
+  }
+</style>
 <body>
   <div class="topbar">
     <div class="logo"><button id="btnThemeToggle" class="logo-badge" title="Toggle theme" aria-label="Toggle theme"></button> MOVA</div>
@@ -660,6 +683,37 @@
   <footer>
     Offline, privacy‑friendly course. Voices and streak are stored in your browser.
   </footer>
+
+  <!-- Mova welcome banner (returning visitors) -->
+  <div id="movaWelcomeBanner" class="mova-welcome-banner" role="region" aria-live="polite" style="display:none">
+    <div class="msg">Mova: language meets culture — Welcome back! <span id="movaBannerWhen" class="muted"></span></div>
+    <div class="cta">
+      <button id="movaOpenIntro" class="btn primary" style="color:#000">Open Intro</button>
+      <button id="movaDismissBanner" class="btn ghost">Dismiss</button>
+    </div>
+  </div>
+
+  <!-- Mova welcome modal (first-time visitors) -->
+  <div id="movaWelcomeModalOverlay" class="mova-welcome-modal-overlay" aria-hidden="true">
+    <div class="mova-welcome-modal" role="dialog" aria-modal="true" aria-labelledby="movaWelcomeTitle" aria-describedby="movaWelcomeDesc">
+      <h2 id="movaWelcomeTitle">Mova: language meets culture — Welcome</h2>
+      <div id="movaWelcomeDesc" class="muted">A quick introduction to how Mova blends language learning with short cultural moments. Tap play to hear a greeting and explore a cultural snapshot.</div>
+      <div class="mova-welcome-media" style="margin-top:12px">
+        <img id="movaCultureImg" data-src="assets/images/culture.jpg" alt="Cultural snapshot image" loading="lazy" />
+        <div style="flex:1">
+          <p id="movaWelcomeText">Mova: language meets culture — We pair short lessons with cultural context to help meaning stick.</p>
+          <div style="margin-top:8px">
+            <button id="movaPlayAudio" class="mova-welcome-audio-btn btn blue">🔊 Play greeting</button>
+            <button id="movaCloseIntro" class="btn ghost">Close</button>
+          </div>
+          <div class="mova-welcome-optout">
+            <input type="checkbox" id="movaOptOut" />
+            <label for="movaOptOut">Don't show this intro again</label>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 
 <script>
 /* ========================
@@ -2091,6 +2145,92 @@ function applyTheme(theme){
     updateForMobile();
   }catch(e){ /* ignore if not supported */ }
 })();
+</script>
+<!-- Mova welcome behavior (vanilla, lightweight) -->
+<script>
+// analytics stub — replace with real analytics.track(event, data) on server when available
+window.analytics = window.analytics || { track: function(event, data){ try{ console.log('analytics.track', event, data||{}); }catch(e){} } };
+
+const MOVA_KEYS = { first: 'mova_first_visit', last: 'mova_last_visit', show: 'mova_show_intro' };
+
+function isoNow(){ return (new Date()).toISOString(); }
+
+function clearMovaWelcomePrefs(){ localStorage.removeItem(MOVA_KEYS.first); localStorage.removeItem(MOVA_KEYS.last); localStorage.removeItem(MOVA_KEYS.show); analytics.track('mova_welcome_prefs_cleared'); toast('Mova: language meets culture — welcome prefs cleared'); }
+window.clearMovaWelcomePrefs = clearMovaWelcomePrefs;
+
+function setLastVisit(){ try{ localStorage.setItem(MOVA_KEYS.last, isoNow()); }catch(e){} }
+
+function showBannerWhenReturning(){ const banner = document.getElementById('movaWelcomeBanner'); const when = document.getElementById('movaBannerWhen'); if(!banner) return; banner.style.display='flex'; const last = localStorage.getItem(MOVA_KEYS.last); when.textContent = last ? `(last: ${new Date(last).toLocaleDateString()})` : ''; analytics.track('mova_banner_shown', { last }); }
+
+function openWelcomeModal(){ const ov = document.getElementById('movaWelcomeModalOverlay'); if(!ov) return; ov.classList.add('open'); ov.setAttribute('aria-hidden','false'); trapFocusInModal(ov); // lazy load image
+  const img = document.getElementById('movaCultureImg'); if(img && img.dataset && img.dataset.src){ img.src = img.dataset.src; }
+  analytics.track('mova_modal_opened', { first: localStorage.getItem(MOVA_KEYS.first) });
+}
+
+function closeWelcomeModal(){ const ov=document.getElementById('movaWelcomeModalOverlay'); if(!ov) return; ov.classList.remove('open'); ov.setAttribute('aria-hidden','true'); releaseFocusTrap(); analytics.track('mova_modal_closed'); }
+
+/* Focus trap (simple) */
+let _previouslyFocused = null;
+let _trapNode = null;
+function trapFocusInModal(modalOverlay){ try{
+  _trapNode = modalOverlay.querySelector('[role="dialog"]') || modalOverlay;
+  _previouslyFocused = document.activeElement;
+  const focusable = 'a[href], area[href], input:not([disabled]), button:not([disabled]), textarea:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])';
+  const nodes = Array.from(_trapNode.querySelectorAll(focusable)).filter(n=> n.offsetParent !== null);
+  if(nodes.length) nodes[0].focus();
+  function handler(e){ if(e.key === 'Tab'){ const f = Array.from(_trapNode.querySelectorAll(focusable)).filter(n=> n.offsetParent !== null); if(f.length===0) { e.preventDefault(); return; } const idx = f.indexOf(document.activeElement); if(e.shiftKey){ if(idx===0){ f[f.length-1].focus(); e.preventDefault(); } } else { if(idx===f.length-1){ f[0].focus(); e.preventDefault(); } } } if(e.key==='Escape'){ closeWelcomeModal(); } }
+  _trapNode.__handler = handler; document.addEventListener('keydown', handler);
+}catch(e){}}
+function releaseFocusTrap(){ try{ if(_trapNode && _trapNode.__handler) document.removeEventListener('keydown', _trapNode.__handler); if(_previouslyFocused && _previouslyFocused.focus) _previouslyFocused.focus(); _trapNode = null; _previouslyFocused = null; }catch(e){} }
+
+// Lazy audio play-on-click (user gesture required). Uses data-src and creates Audio object.
+let _movaAudio = null;
+document.getElementById('movaPlayAudio').addEventListener('click', function(){
+  const btn = this; btn.disabled = true; // avoid double clicks
+  const src = 'assets/audio/hello_uk.mp3'; // lazy: set to a local audio file. Replace path as needed.
+  try{
+    if(!_movaAudio){ _movaAudio = new Audio(); _movaAudio.preload = 'none'; }
+    if(_movaAudio.src !== src) _movaAudio.src = src;
+    _movaAudio.play().then(()=>{ analytics.track('mova_audio_played'); btn.disabled=false; }).catch(err=>{ console.warn('audio play failed', err); btn.disabled=false; });
+  }catch(e){ console.warn(e); btn.disabled=false; }
+});
+
+// Wire modal buttons & banner
+document.getElementById('movaCloseIntro').addEventListener('click', ()=>{ const cb = document.getElementById('movaOptOut'); if(cb && cb.checked){ try{ localStorage.setItem(MOVA_KEYS.show, 'false'); /* If user is authenticated: sync to server here (POST /api/user/prefs) */ }catch(e){} } closeWelcomeModal(); setLastVisit(); });
+document.getElementById('movaOpenIntro').addEventListener('click', ()=>{ openWelcomeModal(); });
+document.getElementById('movaDismissBanner').addEventListener('click', ()=>{ const b=document.getElementById('movaWelcomeBanner'); if(b) b.style.display='none'; analytics.track('mova_banner_dismissed'); });
+
+// On page load decide whether to show modal or banner
+(function initMovaWelcome(){ try{
+  // Ensure we update last visit at least
+  const first = localStorage.getItem(MOVA_KEYS.first);
+  const showIntroPref = localStorage.getItem(MOVA_KEYS.show);
+  const last = localStorage.getItem(MOVA_KEYS.last);
+  if(!first){ // first-time visitor
+    try{ localStorage.setItem(MOVA_KEYS.first, isoNow()); }catch(e){}
+    // Only show if user hasn't opted out explicitly
+    if(showIntroPref !== 'false'){
+      // open modal after a slight delay so the page is ready
+      setTimeout(()=> openWelcomeModal(), 520);
+    }
+    analytics.track('mova_first_visit_shown');
+  } else {
+    // returning visitor — show unobtrusive banner unless opted out
+    if(showIntroPref !== 'false'){
+      // show banner for returners; you can tune recency threshold here
+      setTimeout(()=> showBannerWhenReturning(), 700);
+    }
+    analytics.track('mova_returner_seen', { first, last });
+  }
+  // Persist last visit for next time
+  try{ localStorage.setItem(MOVA_KEYS.last, isoNow()); }catch(e){}
+}catch(e){ console.error(e); } })();
+
+// Expose opt-out helper to allow UI to toggle pref programmatically
+window.movaSetShowIntro = function(val){ try{ localStorage.setItem(MOVA_KEYS.show, val ? 'true' : 'false'); analytics.track('mova_set_show_intro', {value: val}); }catch(e){} };
+
+// Make clear where to integrate server-side sync for authenticated users:
+// TODO: If user is logged in, POST mova_show_intro to /api/user/prefs to persist across devices.
 </script>
 </body>
 </html>
