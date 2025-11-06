@@ -38,6 +38,40 @@
     --cta-start: var(--UL-gold);
     --cta-end: var(--UL-gold);
   }
+  /* Flashcards modal/card styles */
+  .flashcard-card{
+    /* card should fill most of the overlay/modal area */
+    width: min(1100px, 96vw);
+    max-width:1200px;
+    height: calc(100vh - 140px);
+    margin: 0 auto;
+    border-radius:18px; background:var(--panel); border:1px solid var(--border); box-shadow:var(--shadow);
+    display:flex; flex-direction:column; align-items:center; justify-content:center; padding:28px; gap:12px; box-sizing:border-box;
+  }
+  .flashcard-uk{ font-weight:900; font-size: clamp(2rem, 8vw, 3.6rem); text-align:center; cursor:pointer; }
+  .flashcard-en{ margin-top:16px; font-size:1.2rem; color:var(--duo-muted); text-align:center }
+  .flashcard-actions{ width:100%; display:flex; gap:12px; margin-top:22px; justify-content:space-between }
+  .flashcard-actions .btn{ flex:1; padding:14px 18px; border-radius:12px; font-weight:900 }
+  .flashcard-actions .btn.gold{ background: linear-gradient(180deg, var(--UL-gold), var(--UL-gold)); color:#000 }
+  .flashcard-actions .btn.blue{ background: linear-gradient(180deg, var(--UL-blue), var(--UL-blue)); color:#fff }
+  @media (max-width:700px){ .flashcard-card{ min-height:62vh; padding:18px } .flashcard-uk{ font-size: clamp(1.6rem, 10vw, 2.8rem) } }
+  /* Fullscreen modal overrides for Word Match and Flashcards */
+  #wordMatchOverlay .modal, #flashcardOverlay .modal{
+    width: 100vw; height: 100vh; max-width:100%; max-height:100%; border-radius:0; padding:12px; display:flex; align-items:center; justify-content:center; background:var(--panel);
+  }
+  /* Word Match game styles */
+  .wordmatch-card{ width:min(920px,94vw); max-width:920px; background:var(--panel); border:1px solid var(--border); border-radius:16px; box-shadow:var(--shadow); padding:12px; display:flex; flex-direction:column; gap:10px; max-height: calc(100vh - 120px); }
+  .wm-grid{ display:grid; grid-template-columns: 1fr 1fr; gap:14px; align-items:stretch; width:100%; }
+  /* Make columns flex so buttons fill available height and avoid vertical scrolling */
+  .wm-column{ display:flex; flex-direction:column; gap:10px; align-items:stretch; }
+  .wm-btn{ text-align:center; padding:10px 12px; border-radius:12px; border:2px solid var(--border); background: linear-gradient(180deg, rgba(127,127,127,.03), rgba(127,127,127,.01)); font-weight:900; cursor:pointer; font-size:1.05rem; min-height:48px; flex:1; box-sizing:border-box; color: var(--color-text) }
+  .wm-btn.selected{ outline:3px solid var(--UL-gold); }
+  /* matched-anim: temporary blue outline then fade to matched state */
+  .wm-btn.matched-anim{ outline:3px solid var(--UL-blue); transition: outline-color .35s ease, opacity .45s ease; }
+  .wm-btn.matched{ opacity:.45; pointer-events:none; filter:grayscale(.4); transition: opacity .3s ease; }
+  .wm-timer{ margin-top:8px; text-align:center; font-weight:900; }
+  .wm-win{ text-align:center; padding:18px; border-radius:12px; background:var(--panel); border:1px solid var(--border); box-shadow:var(--shadow); }
+  @media (max-width:700px){ .wordmatch-card{ padding:14px } .wm-btn{ padding:10px 8px; font-size:.95rem } }
   @media (prefers-color-scheme: dark){
     :root{
       --panel:#11161c;
@@ -551,11 +585,19 @@
       <div class="grid-cards" style="margin-top:12px">
         <div class="card">
           <div class="title">Flashcards</div>
-          <div class="muted">Coming soon — flashcard study interface will appear here.</div>
+          <div class="muted">Practice vocabulary from your unlocked lessons. Tap Start to study Ukrainian → English.</div>
+          <div style="margin-top:10px; display:flex; gap:8px; flex-wrap:wrap">
+            <button id="btnFlashcards" class="btn blue">Start Flashcards</button>
+            <button id="btnFlashcardsMix" class="btn">Start Mixed (All Unlocked)</button>
+          </div>
         </div>
         <div class="card">
           <div class="title">Games</div>
-          <div class="muted">Coming soon — lightweight practice games will appear here.</div>
+          <div class="muted">Lightweight practice games. Try Word Match to pair Ukrainian ↔ English.</div>
+          <div style="margin-top:10px; display:flex; gap:8px; flex-wrap:wrap">
+            <button id="btnWordMatch" class="btn blue">Start Word Match</button>
+            <button id="btnGamesMore" class="btn">More Games</button>
+          </div>
         </div>
       </div>
     </section>
@@ -709,6 +751,31 @@
       <div class="nav-label">Library</div>
     </button>
   </nav>
+
+  <!-- Word Match overlay -->
+  <div id="wordMatchOverlay" class="overlay" aria-hidden="true">
+    <div class="modal">
+      <div id="wordMatchView" style="max-width:960px; width:94vw;">
+        <div class="title">Word Match — Pair Ukrainian → English</div>
+        <div class="wordmatch-card" id="wmCard">
+          <div class="muted">Tap a Ukrainian word, then its English translation.</div>
+          <div class="wm-grid" id="wmGrid">
+            <div class="wm-column" id="wmLeft"></div>
+            <div class="wm-column" id="wmRight"></div>
+          </div>
+          <div class="wm-timer" id="wmTimer">Time: 0 s</div>
+        </div>
+        <div style="display:flex; gap:8px; justify-content:flex-end; margin-top:12px"><button id="wmClose" class="btn">Close</button></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Flashcard overlay (fullscreen) -->
+  <div id="flashcardOverlay" class="overlay" aria-hidden="true">
+    <div class="modal">
+      <div id="flashcardView" style="width:100%; height:100%; display:flex; align-items:center; justify-content:center;"></div>
+    </div>
+  </div>
 
   <footer>
     © Copyright Mova Learning LLC, 2025. All rights reserved.
@@ -1803,6 +1870,11 @@ function genTaskFromItem(item, overrideMode=null){
     const topic = topicForDeckKey(item.__deckKey||"");
     return { kind:'mcg', prompt:q.sentence, options: q.choices.map(c=>c), answerIndex:q.answer, explain:q.explanation||"", speak: q.sentence.replace("_____", "…"), topic };
   }
+  // Flashcard override: prefer write-back (word-bank) style Ukrainian -> English
+  if(overrideMode==='flashcard'){
+    // Flashcards use a dedicated flash view: simple Ukrainian prompt + English answer revealed on request
+    return { kind: 'flash', uk: item.uk, en: (item.en||''), speak: item.uk, topic: topicForDeckKey(item.__deckKey) };
+  }
   if(overrideMode==='audio'){ return buildMC_UK_EN(item); }
   if(overrideMode==='en-uk-mc'){ return buildMC_EN_UK(item); }
   const rnd = Math.random();
@@ -1845,6 +1917,108 @@ function startQuickSession({name, decks, steps=10, hearts=5, override=null}){
   $('#lessonTitle').textContent = name;
 }
 
+// Return deck keys from skills that are currently unlocked on the home path
+function getUnlockedDeckKeys(){
+  try{
+    const keys = new Set();
+    SKILLS.filter(isUnlocked).forEach(s=>{ (s.decks||[]).forEach(d=>{ if(d) keys.add(d); }); });
+    return Array.from(keys).filter(k=> !!BUILTIN_DECKS[k]);
+  }catch(e){ return ['greetings','basics_core']; }
+}
+
+// Start a flashcards quick session using unlocked lessons as the source
+function startFlashcards(){
+  let decks = getUnlockedDeckKeys();
+  if(!decks || decks.length===0){ decks = ['greetings','basics_core']; }
+  const steps = 10;
+  startQuickSession({ name: 'Flashcards', decks: decks, steps: steps, hearts:0, override: 'flashcard' });
+}
+
+// WORD MATCH GAME
+let WM = { pairs: [], leftOrder: [], rightOrder: [], selected: null, matchedCount:0, timerId:null, seconds:0 };
+function buildWordPairs(){
+  // sample 6 unique vocab items from unlocked decks
+  const deckKeys = getUnlockedDeckKeys();
+  let pool = deckKeys.flatMap(k => (deckByKey(k)?.items||[]));
+  pool = shuffle(pool.filter(Boolean));
+  const pairs = [];
+  const seen = new Set();
+  for(const it of pool){ if(pairs.length>=6) break; const uk = it.uk; const en = primaryEn(it.en||''); if(!uk || !en) continue; const key = normalizeText(uk)+'|'+normalizeText(en); if(seen.has(key)) continue; seen.add(key); pairs.push({uk, en}); }
+  if(pairs.length<6){ // fallback to builtin greetings/core
+    const fallback = sampleFromDeckKeys(['greetings','basics_core','phrases'], 12);
+    for(const it of fallback){ if(pairs.length>=6) break; const uk = it.uk; const en = primaryEn(it.en||''); if(!uk||!en) continue; const key = normalizeText(uk)+'|'+normalizeText(en); if(seen.has(key)) continue; seen.add(key); pairs.push({uk,en}); }
+  }
+  return pairs.slice(0,6);
+}
+
+function startWordMatch(){
+  const ov = document.getElementById('wordMatchOverlay'); if(!ov) return; ov.classList.add('open'); ov.setAttribute('aria-hidden','false');
+  // build pairs and shuffle positions
+  WM.pairs = buildWordPairs();
+  WM.leftOrder = shuffle(WM.pairs.map((p,i)=> ({id:i, text:p.uk}))); WM.rightOrder = shuffle(WM.pairs.map((p,i)=> ({id:i, text:p.en})));
+  WM.matchedCount = 0; WM.selected = null; WM.seconds = 0;
+  renderWordMatch();
+  // start timer
+  clearInterval(WM.timerId); WM.timerId = setInterval(()=>{ WM.seconds++; document.getElementById('wmTimer').textContent = `Time: ${WM.seconds} s`; }, 1000);
+}
+
+function closeWordMatch(){ const ov = document.getElementById('wordMatchOverlay'); if(!ov) return; ov.classList.remove('open'); ov.setAttribute('aria-hidden','true'); clearInterval(WM.timerId); WM.timerId=null; }
+
+function renderWordMatch(){
+  const left = document.getElementById('wmLeft'); const right = document.getElementById('wmRight'); left.innerHTML=''; right.innerHTML='';
+  WM.leftOrder.forEach(item=>{
+    const b = document.createElement('button'); b.className='wm-btn'; b.textContent = item.text; b.dataset.id = item.id; b.dataset.side='left'; b.addEventListener('click', ()=> onWMClick(b)); left.appendChild(b);
+  });
+  WM.rightOrder.forEach(item=>{
+    const b = document.createElement('button'); b.className='wm-btn'; b.textContent = item.text; b.dataset.id = item.id; b.dataset.side='right'; b.addEventListener('click', ()=> onWMClick(b)); right.appendChild(b);
+  });
+  document.getElementById('wmTimer').textContent = `Time: ${WM.seconds} s`;
+}
+
+function onWMClick(btn){
+  if(btn.classList.contains('matched')) return;
+  // toggle selection
+  const side = btn.dataset.side; const id = btn.dataset.id;
+  if(!WM.selected){ btn.classList.add('selected'); WM.selected = {btn, id, side}; return; }
+  // if same button clicked again, deselect
+  if(WM.selected.btn === btn){ btn.classList.remove('selected'); WM.selected = null; return; }
+  // ensure opposite sides selected
+  if(WM.selected.side === side){ // same side - swap selection
+    WM.selected.btn.classList.remove('selected'); btn.classList.add('selected'); WM.selected = {btn, id, side}; return;
+  }
+  // now we have two selections: WM.selected and btn
+  const a = WM.selected; const b = btn;
+  const match = (a.id === b.dataset.id);
+  if(match){
+    // briefly outline both in blue, then fade them to matched state
+    a.btn.classList.remove('selected'); b.classList.remove('selected');
+    a.btn.classList.add('matched-anim'); b.classList.add('matched-anim');
+    // after animation, convert to matched (grayed out)
+    setTimeout(()=>{
+      a.btn.classList.remove('matched-anim'); b.classList.remove('matched-anim');
+      a.btn.classList.add('matched'); b.classList.add('matched'); a.btn.disabled=true; b.disabled=true; WM.matchedCount++;
+      // check win
+      if(WM.matchedCount >= WM.pairs.length){ clearInterval(WM.timerId); WM.timerId=null; setTimeout(()=> showWMWin(), 300); }
+    }, 420);
+    WM.selected = null;
+  } else {
+    // brief wrong effect
+    a.btn.classList.add('wrong'); b.classList.add('wrong');
+    setTimeout(()=>{ a.btn.classList.remove('wrong','selected'); b.classList.remove('wrong'); WM.selected = null; }, 600);
+  }
+}
+
+function showWMWin(){
+  const content = document.createElement('div'); content.className='wm-win';
+  content.innerHTML = `<h2>You won!</h2><p class="muted">Time taken: ${WM.seconds} s</p><div style="margin-top:12px"><button id="wmCloseWin" class="btn primary">Close</button></div>`;
+  const card = document.getElementById('wmCard'); card.appendChild(content);
+  document.getElementById('wmCloseWin').addEventListener('click', ()=>{ content.remove(); closeWordMatch(); });
+}
+
+function closeFlashcardOverlay(){ const ov = document.getElementById('flashcardOverlay'); if(!ov) return; ov.classList.remove('open'); ov.setAttribute('aria-hidden','true'); const view = document.getElementById('flashcardView'); if(view) view.innerHTML=''; try{ document.getElementById('hearts').style.display='flex'; document.getElementById('segments').style.display='flex'; document.querySelector('#lesson .action-bar').style.display='flex'; }catch(e){} }
+
+document.getElementById('wmClose')?.addEventListener('click', ()=> closeWordMatch());
+
 /* ========================
    RENDER: LESSON
    ======================== */
@@ -1875,13 +2049,48 @@ function showInfo(msg){
 let checking=false;
 function renderTask(){
   try{
-    renderSegments(); renderHearts();
+    // For flashcard mode we show a large focused card — avoid hearts/segments
+    renderSegments();
     const title = CURRENT.skillId==="__quick__" ? (CURRENT.quickName||"Practice") : (SKILLS.find(s=>s.id===CURRENT.skillId)?.name || "Lesson");
     $('#lessonTitle').textContent = title;
     $('#feedback').style.display='none'; $('#feedback').className='feedback'; $('#btnCheck').disabled = true; $('#btnIDK').disabled = false; checking=false;
     const bc=$('#btnCheck'); if(bc){ bc.textContent='Check'; bc.classList.remove('red'); bc.classList.add('primary'); bc.dataset.mode='check'; }
     const t = CURRENT.tasks[CURRENT.idx];
     if(!t){ $('#promptLabel').textContent="Loading task…"; $('#mcWrap').innerHTML=""; $('#wbWrap').style.display='none'; $('#mediaArea').innerHTML=""; return; }
+    // Special rendering for flashcards
+    if(t.kind === 'flash'){
+      // Render flashcard into its fullscreen overlay so it fills the viewport
+      try{ document.getElementById('hearts').style.display='none'; document.getElementById('segments').style.display='none'; }catch(e){}
+      try{ document.querySelector('#lesson .action-bar').style.display='none'; }catch(e){}
+      $('#mcWrap').style.display='none'; $('#wbWrap').style.display='none'; $('#mcWrap').innerHTML = "";
+      // open overlay
+      const ov = document.getElementById('flashcardOverlay'); if(ov){ ov.classList.add('open'); ov.setAttribute('aria-hidden','false'); }
+      const view = document.getElementById('flashcardView'); if(!view) return;
+      view.innerHTML = '';
+      // Render the flashcard card centered in the overlay
+      const card = document.createElement('div'); card.className = 'flashcard-card';
+      card.innerHTML = `
+        <div class="flashcard-uk" id="flashUK" role="button" tabindex="0">${escapeHtml(t.uk)}</div>
+        <div class="flashcard-en" id="flashEN" style="display:none">${escapeHtml(t.en)}</div>
+        <div class="flashcard-actions">
+          <button id="flashShow" class="btn gold">Show Answer</button>
+          <button id="flashNext" class="btn blue">Next Card</button>
+        </div>`;
+      view.appendChild(card);
+      // autoplay audio for the ukrainian word
+      try{ speak(t.speak || t.uk); }catch(e){}
+      // wire interactions inside overlay
+      const ukEl = card.querySelector('#flashUK'); if(ukEl){ ukEl.addEventListener('click', ()=> speak(t.speak || t.uk)); ukEl.addEventListener('keydown', (ev)=>{ if(ev.key==='Enter' || ev.key===' ') { ev.preventDefault(); speak(t.speak || t.uk); } }); }
+      const showBtn = card.querySelector('#flashShow'); if(showBtn){ showBtn.addEventListener('click', ()=>{ const en = card.querySelector('#flashEN'); if(en) en.style.display='block'; showBtn.disabled = true; }); }
+      const nextBtn = card.querySelector('#flashNext'); if(nextBtn){ nextBtn.addEventListener('click', ()=>{ // advance
+        CURRENT.stepsDone++;
+        if(CURRENT.stepsDone >= CURRENT.stepsTotal){ endLesson(true); return; }
+        CURRENT.idx = Math.min(CURRENT.idx+1, CURRENT.tasks.length-1);
+        renderTask();
+      }); }
+      return;
+    }
+    // non-flashcards resume regular rendering
     $('#subtitle').textContent = t.direction==='uk-en' ? 'Translate to English' : t.direction==='en-uk' ? 'Choose the Ukrainian translation' : (t.direction==='animal-sound'?'Tap the animal, then choose its sound':'Choose the correct form');
     $('#speakBtn').style.display = '';
     const __spk = getSpeakText(t);
@@ -2040,10 +2249,26 @@ document.addEventListener('keydown', (e)=>{ if((e.key||'').toLowerCase()==='g'){
    ======================== */
 function endLesson(completed){
   setTimeout(()=>{
-    setView('#summary'); const pass = completed && CURRENT.hearts>0; const xp = pass ? 12 : 5;
-    $('#sumXP').textContent = xp; $('#sumMsg').textContent = pass ? "Great job!" : "Lesson over";
+    setView('#summary');
+    // Flashcards: award a flat XP and avoid hearts-based pass/fail
+    let xp;
+    if(CURRENT.modeOverride === 'flashcard'){
+      xp = 10;
+      $('#sumMsg').textContent = "Flashcards complete";
+    } else {
+      const pass = completed && CURRENT.hearts>0;
+      xp = pass ? 12 : 5;
+      $('#sumMsg').textContent = pass ? "Great job!" : "Lesson over";
+    }
+    $('#sumXP').textContent = xp;
     $('#sumCorrect').textContent = CURRENT.correct; $('#sumTotal').textContent = CURRENT.stepsTotal; $('#sumHearts').textContent = CURRENT.hearts;
-    addXP(xp); if(pass && CURRENT.skillId!=="__quick__"){ completeSkill(CURRENT.skillId); } renderPath();
+  addXP(xp);
+  // ensure any overlays used for special modes are closed
+  if(CURRENT.modeOverride === 'flashcard'){ try{ closeFlashcardOverlay(); }catch(e){} }
+    if(CURRENT.modeOverride!=='flashcard' && (CURRENT.skillId!=="__quick__") && (CURRENT.hearts>0)){
+      completeSkill(CURRENT.skillId);
+    }
+    renderPath();
   }, 300);
 }
 function openTips(skillId){ const sk = SKILLS.find(s=>s.id===skillId); const more = `<div class="tipbox" style="margin-top:10px"><strong>Open during lessons:</strong> use the <em>🧠 Grammar</em> button (or press <kbd>G</kbd>) for context help.</div>`; $('#tipsTitle').textContent = `${sk?.name||'Tips'} — Tips`; $('#tipsBody').innerHTML = (sk?.tips || "<p class='muted'>No tips yet.</p>")+more; setView('#tips'); }
@@ -2066,6 +2291,11 @@ $('#btnAudio').addEventListener('click', ()=> startQuickSession({name:"Audio Dri
 $('#btnReading').addEventListener('click', ()=> startQuickSession({name:"EN→UK (MC)", decks: GROUPS.vocab, steps:10, hearts:5, override: 'en-uk-mc'}));
 $('#btnGrammar').addEventListener('click', ()=> startQuickSession({name:"Grammar Review", decks: GROUPS.grammar, steps:10, hearts:5}));
 $('#btnMixed').addEventListener('click', ()=> startQuickSession({name:"Mixed Review", decks: [...GROUPS.vocab, ...GROUPS.grammar], steps:10, hearts:5}));
+$('#btnFlashcards').addEventListener('click', ()=> startFlashcards());
+$('#btnFlashcardsMix').addEventListener('click', ()=> startQuickSession({ name: 'Flashcards — Mixed', decks: Object.keys(BUILTIN_DECKS), steps: 10, hearts:0, override: 'flashcard' }));
+  
+  // Word Match: open the game overlay and start
+  $('#btnWordMatch').addEventListener('click', ()=> startWordMatch());
 
 $('#btnIDK').addEventListener('click', idk);
 $('#btnCheck').addEventListener('click', checkAnswer);
