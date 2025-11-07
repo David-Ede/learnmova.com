@@ -208,11 +208,16 @@
   /* Hide legacy start card; replaced by Alphabet module */
   .start-card{ display:none }
   /* Alphabet module styles */
-  .alph-grid{ display:grid; grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); gap:8px; margin-top:10px }
-  .alph-btn{ display:grid; gap:6px; align-items:center; justify-items:center; padding:10px; border:2px solid var(--border); border-radius:12px; background:linear-gradient(180deg, rgba(127,127,127,.06), rgba(127,127,127,.03)); cursor:pointer }
+  /* Alphabet module styles */
+  .alph-grid{ display:grid; grid-template-columns: repeat(4, minmax(80px, 1fr)); gap:12px; margin:6px auto; align-items:start; max-width:520px; padding:6px; box-sizing:border-box }
+  /* Reduce the large top gap for the alphabet SPA by offsetting the section upward
+    while keeping a small comfortable gap below the fixed topbar. This restores
+    the denser vertical spacing the overlay used to have. */
+  #alphabet{ margin-top: calc(-1 * var(--topbar-space)); padding-top:12px }
+  .alph-btn{ display:grid; gap:6px; align-items:center; justify-items:center; padding:12px; border:2px solid var(--border); border-radius:12px; background:linear-gradient(180deg, rgba(127,127,127,.06), rgba(127,127,127,.03)); cursor:pointer }
   /* Use theme-aware text color so letters are visible in light and dark themes */
-  .alph-btn .letters{ font-weight:900; font-size:1.2rem; color:var(--color-text) }
-  .alph-btn .trans{ font-size:.9rem; color:var(--duo-muted) }
+  .alph-btn .letters{ font-weight:900; font-size:1.25rem; color:var(--color-text) }
+  .alph-btn .trans{ font-size:1rem; color:var(--duo-muted) }
   .alph-btn:active{ transform:scale(.98) }
   .alph-head{ display:flex; align-items:center; justify-content:space-between; gap:10px }
   .overlay{ position:fixed; inset:0; background:rgba(0,0,0,.45); display:none; align-items:center; justify-content:center; z-index:50 }
@@ -232,12 +237,33 @@
   #alphLessonView .progress{ margin-left:56px; margin-right:12px }
 
   /* Option buttons (phonetics) */
-  .alph-options{ display:grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap:8px; margin-top:12px }
+  .alph-options{ display:grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap:10px; margin-top:12px }
   .alph-option{ padding:12px 14px; border:2px solid var(--border); border-radius:12px; background: linear-gradient(180deg, rgba(127,127,127,.03), rgba(127,127,127,.01)); cursor:pointer; font-weight:800; text-align:center; color:var(--color-text) }
   .alph-option.selected{ border-color: var(--blue); box-shadow: 0 6px 18px rgba(28,176,246,.12); }
   .alph-option.correct{ border-color: var(--duo-green); background: linear-gradient(180deg, rgba(127,255,127,.06), rgba(127,255,127,.02)) }
   .alph-option.wrong{ border-color: var(--red); background: linear-gradient(180deg, rgba(255,127,127,.04), rgba(255,127,127,.02)) }
   .alph-option:disabled{ opacity:.5; cursor:not-allowed }
+
+  /* Center the Close/Start buttons in the alphabet intro view */
+  #alphabet .actions{ justify-content:center; display:flex; align-items:center }
+
+  /* Center intro text and make lesson headings centered inside the alphabet SPA */
+  #alphabet .title, #alphabet .muted, #alphLessonView .title { text-align:center }
+
+  /* Center the main alphabet header while keeping the Back button on the left */
+  #alphabet > div:first-child{ position:relative; display:flex; align-items:center; gap:12px; margin-bottom:12px }
+  #alphabet > div:first-child div{ position:absolute; left:0; right:0; text-align:center; font-weight:900; font-size:1.05rem }
+  #alphabet > div:first-child button{ position:relative; z-index:2 }
+
+  /* Responsive: on narrow screens show a 2-column grid (2xN) similar to Basics 1 behavior */
+  @media (max-width:700px){
+    /* Keep a 4-column compact grid even on narrow screens per design request */
+  #alphabet .alph-grid{ grid-template-columns: repeat(4, minmax(60px, 1fr)); max-width:520px; margin:8px auto; padding:4px }
+    #alphabet .alph-btn{ padding:10px }
+    #alphabet .alph-options{ grid-template-columns: repeat(2, 1fr); gap:8px }
+    /* keep the big letter a comfortable size on small screens */
+    #alphabet .alph-bigletter{ font-size:3.6rem }
+  }
 
   /* Top-left X button inside the modal for closing the lesson and returning home */
   .modal .modal-close-lesson{
@@ -416,7 +442,11 @@
   body.nav-open .tabbar{ display:flex; flex-direction:row; justify-content:flex-start; gap:6px }
   /* make touch targets larger */
   .btn{ padding:14px 16px; border-radius:12px; }
-  .alph-grid{ grid-template-columns: repeat(auto-fill, minmax(72px, 1fr)); gap:8px }
+  /* Keep touch targets comfortable on mobile but preserve the 4-column grid look
+    — avoid stacking alphabet buttons to a single huge row. */
+  .alph-grid{ gap:8px }
+  /* Slightly reduce the big letter size on small phones */
+  #alphabet .alph-bigletter{ font-size:3.6rem }
   .node{ width:84px; height:84px }
   .path-grid{ gap:12px }
   main{ padding-bottom:20px }
@@ -530,6 +560,48 @@
       </div>
 
     </section>
+    <!-- FLASHCARDS PLAY VIEW (full-screen) -->
+    <section id="flashcards" class="view">
+      <div class="lesson-wrap" style="max-width:820px; margin:0 auto;">
+        <div style="display:flex; align-items:center; gap:12px; margin-bottom:12px;">
+          <button id="flashBack" class="btn ghost">← Back</button>
+          <div style="font-weight:900; font-size:1.05rem">Flashcards</div>
+        </div>
+        <!-- Progress + segments (shared renderer) -->
+        <div style="display:flex; align-items:center; gap:12px; margin-bottom:12px; justify-content:space-between;">
+          <div id="flashProgressText" class="muted">0 / 0</div>
+          <div class="segments" id="segmentsFlash" style="flex:1; margin-left:12px; height:8px;"></div>
+        </div>
+        <div id="flashcardArea" style="display:flex; align-items:center; justify-content:center; min-height:60vh;">
+          <div class="flashcard-card" id="flashcardCard" style="max-width:720px; width:100%; display:flex; flex-direction:column; gap:12px;">
+            <div class="flashcard-uk" id="flashcardUK" role="button" tabindex="0" style="text-align:center; font-size:2rem"></div>
+            <div class="flashcard-en muted" id="flashcardEN" style="text-align:center; display:none; font-size:1.2rem"></div>
+            <div style="display:flex; gap:8px; justify-content:center; margin-top:12px">
+              <button id="flashShowAnswer" class="btn gold">Show Answer</button>
+              <button id="flashNextCard" class="btn blue">Next</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- WORD MATCH PLAY VIEW (full-screen) -->
+    <section id="wordmatch_spa" class="view">
+      <div class="lesson-wrap" style="max-width:960px; margin:0 auto;">
+        <div style="display:flex; align-items:center; gap:12px; margin-bottom:12px;">
+          <button id="wmBack" class="btn ghost">← Back</button>
+          <div style="font-weight:900; font-size:1.05rem">Word Match</div>
+          <div style="margin-left:auto" id="wmTimerSpa" class="muted">Time: 0 s</div>
+        </div>
+        <div class="wordmatch-card" style="max-width:100%;">
+          <div class="muted">Tap a Ukrainian word, then its English translation.</div>
+          <div class="wm-grid" style="display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-top:12px">
+            <div class="wm-column" id="wmLeftSpa"></div>
+            <div class="wm-column" id="wmRightSpa"></div>
+          </div>
+        </div>
+      </div>
+    </section>
 
     <!-- PRACTICE VIEW -->
     <section id="practice" class="view">
@@ -587,16 +659,14 @@
           <div class="title">Flashcards</div>
           <div class="muted">Practice vocabulary from your unlocked lessons. Tap Start to study Ukrainian → English.</div>
           <div style="margin-top:10px; display:flex; gap:8px; flex-wrap:wrap">
-            <button id="btnFlashcards" class="btn blue">Start Flashcards</button>
-            <button id="btnFlashcardsMix" class="btn">Start Mixed (All Unlocked)</button>
+              <button id="btnFlashcards" class="btn blue">Start Flashcards</button>
           </div>
         </div>
         <div class="card">
           <div class="title">Games</div>
           <div class="muted">Lightweight practice games. Try Word Match to pair Ukrainian ↔ English.</div>
           <div style="margin-top:10px; display:flex; gap:8px; flex-wrap:wrap">
-            <button id="btnWordMatch" class="btn blue">Start Word Match</button>
-            <button id="btnGamesMore" class="btn">More Games</button>
+              <button id="btnWordMatch" class="btn blue">Start Word Match</button>
           </div>
         </div>
       </div>
@@ -677,39 +747,88 @@
         <div style="margin-top:12px"><button id="btnBackFromTips" class="btn">Back</button></div>
       </div>
     </section>
+
+    <!-- CULTURAL FACT VIEW (full-screen SPA view like Basics 1) -->
+    <section id="cultural" class="view">
+      <div class="lesson-wrap" style="max-width:980px; margin:0 auto;">
+        <div style="display:flex; align-items:center; gap:12px; margin-bottom:12px;">
+          <button id="culturalBack" class="btn ghost" aria-label="Back">X</button>
+          <div style="font-weight:900; font-size:1.05rem">Cultural Fact</div>
+          <div style="margin-left:auto; display:flex; gap:8px">
+            <button id="culturalPrev" class="btn blue">← Prev</button>
+            <button id="culturalNext" class="btn gold">Next →</button>
+          </div>
+        </div>
+
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:18px; align-items:start;">
+          <div style="display:flex; align-items:flex-start; justify-content:center">
+            <div style="width:360px; border-radius:12px; padding:12px; background:linear-gradient(180deg, rgba(127,127,127,.02), rgba(127,127,127,.01)); border:1px solid var(--border)">
+              <svg viewBox="0 0 200 260" width="100%" height="auto" xmlns="http://www.w3.org/2000/svg" aria-label="Tryzub symbol">
+                <g transform="translate(100,20) scale(0.9)" fill="#005bbb" stroke="#00000000">
+                  <path d="M0 0 L -22 62 L -6 66 L -40 154 L -6 148 L 0 180 L 6 148 L 40 154 L 6 66 L 22 62 Z" fill="#005bbb" />
+                  <path d="M0 10 L -12 42 L -4 44 L -26 120 L -4 116 L 0 140 L 4 116 L 26 120 L 4 44 L 12 42 Z" fill="#ffd500" />
+                </g>
+              </svg>
+            </div>
+          </div>
+
+          <div>
+            <h1 style="margin:6px 0 8px 0; font-size:1.6rem">Tryzub — The Ukrainian Trident</h1>
+            <div class="muted">A national emblem with deep historical and cultural meaning.</div>
+            <ul style="margin:12px 0 18px 0">
+              <li style="margin:8px 0; line-height:1.5"><strong>Continuity from Kyivan Rus to modern Ukraine</strong> — The Tryzub appears in medieval seals and coins and is seen by many as a symbol linking the modern Ukrainian state to its medieval origins.</li>
+              <li style="margin:8px 0; line-height:1.5"><strong>Freedom and independence against foreign domination</strong> — Throughout periods of foreign rule, the trident has been used as a sign of national aspiration and sovereignty.</li>
+              <li style="margin:8px 0; line-height:1.5"><strong>Cultural pride, often paired with the blue-and-yellow flag</strong> — The Tryzub is frequently combined with national colors in public displays, monuments, and civic insignia.</li>
+            </ul>
+            <p style="margin:10px 0; line-height:1.6">The Tryzub (Ukrainian: Тризуб, literally “three‑toothed”) serves as more than a decorative motif — it functions as a compact visual summary of identity. Its three-pronged silhouette can be read in multiple ways: as a stylized falcon, as a symbol of the Holy Trinity in Christian readings, or as a dynastic sign used by rulers of Kyivan Rus, notably Volodymyr the Great.</p>
+            <p style="margin:10px 0; line-height:1.6">In modern usage the trident is a common civic emblem and is often displayed alongside the blue-and-yellow flag.</p>
+            <div style="margin-top:12px; display:flex; gap:8px">
+              <button id="culturalShare" class="btn ghost">Share</button>
+              <button id="culturalCloseAction" class="btn ghost">Close</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
   </main>
 
-  <!-- Alphabet overlay -->
-  <div id="alphabetOverlay" class="overlay" aria-hidden="true">
-    <div class="modal">
-      <div id="alphIntroView">
-        <div class="title">Learn the Ukrainian Alphabet</div>
-        <p class="muted">Ukrainian uses the Cyrillic script. Some letters map neatly to English sounds while others are new. Tap Start to explore 10 letters at a time with audio.</p>
-        <div id="alphabetGrid" class="alph-grid"></div>
-        <div class="actions"><button class="btn ghost" id="alphClose">Close</button><button class="btn primary" id="alphStart">Start</button></div>
+  <!-- Alphabet SPA view (replaces legacy overlay for better full-screen reliability) -->
+  <section id="alphabet" class="view" aria-hidden="true">
+    <div style="display:flex; align-items:center; gap:12px; margin-bottom:12px;">
+      <button id="alphabetBack" class="btn ghost" aria-label="Back">← Back</button>
+      <div style="font-weight:900; font-size:1.05rem">Alphabet — Ukrainian letters</div>
+    </div>
+
+    <div id="alphIntroView">
+      <div class="title">Learn the Ukrainian Alphabet</div>
+      <p class="muted">Ukrainian uses the Cyrillic script. Some letters map neatly to English sounds while others are new. Tap Start to explore 10 letters at a time with audio.</p>
+      <div id="alphabetGrid" class="alph-grid"></div>
+      <div class="actions"><button class="btn ghost" id="alphClose">Close</button><button class="btn primary" id="alphStart">Start</button></div>
+    </div>
+
+    <div id="alphLessonView" style="display:none">
+      <div style="display:flex; justify-content:space-between; align-items:center">
+        <div class="title" id="alphLessonTitle" style="text-align:left; margin-top:6px">What sound does this letter make?</div>
+        <div class="progress" aria-hidden="true" style="width:140px"><div id="alphProg"></div></div>
       </div>
-  <div id="alphLessonView" style="display:none">
-    <button type="button" class="modal-close-lesson" id="alphCloseLesson" aria-label="Close lesson">✕</button>
-    <div class="progress" aria-hidden="true"><div id="alphProg"></div></div>
-    <div class="title" id="alphLessonTitle" style="text-align:center; margin-top:6px">What sound does this letter make?</div>
-  <div id="alphBig" class="alph-bigletter"><div class="ua">А а</div><div class="phonetic" aria-hidden="true">a</div></div>
-  <div class="alph-options" id="alphOptions" role="list"></div>
-  <div class="action-bar">
-    <div style="flex:1"></div>
-    <div class="action-group">
-      <div id="alphFeedback" class="feedback" style="display:none" aria-live="polite"></div>
-      <div class="actions"><button class="btn" id="alphPlay" aria-label="Play letter sound">🔊</button><button class="btn primary" id="alphCheck">CHECK</button><button class="btn red" id="alphGotIt" style="display:none">Got it</button></div>
+      <div id="alphBig" class="alph-bigletter" style="margin-top:12px"><div class="ua">А а</div><div class="phonetic" aria-hidden="true">a</div></div>
+      <div class="alph-options" id="alphOptions" role="list"></div>
+      <div class="action-bar">
+        <div style="flex:1"></div>
+        <div class="action-group">
+          <div id="alphFeedback" class="feedback" style="display:none" aria-live="polite"></div>
+          <div class="actions"><button class="btn" id="alphPlay" aria-label="Play letter sound">🔊</button><button class="btn primary" id="alphCheck">CHECK</button><button class="btn red" id="alphGotIt" style="display:none">Got it</button></div>
+        </div>
+      </div>
     </div>
-  </div>
-  </div>
-  <!-- Alphabet complete modal (centered) -->
-  <div id="alphComplete" style="display:none; text-align:center; padding:18px; margin-top:12px">
-    <h2>Congratulations!</h2>
-    <p class="muted">Great job — you completed the alphabet practice.</p>
-  <div style="margin-top:12px"><button id="alphCloseComplete" class="btn primary" style="color:#000;">Close</button></div>
-  </div>
+
+    <!-- Alphabet complete box inside SPA -->
+    <div id="alphComplete" style="display:none; text-align:center; padding:18px; margin-top:12px">
+      <h2>Congratulations!</h2>
+      <p class="muted">Great job — you completed the alphabet practice.</p>
+      <div style="margin-top:12px"><button id="alphCloseComplete" class="btn primary" style="color:#000;">Close</button></div>
     </div>
-  </div>
+  </section>
 
   <!-- In-lesson Grammar Side Panel -->
   <aside id="gpanel" class="gpanel" aria-hidden="true">
@@ -777,6 +896,8 @@
     </div>
   </div>
 
+  <!-- Cultural Fact moved to SPA view (see section #cultural) -->
+
   <footer>
     © Copyright Mova Learning LLC, 2025. All rights reserved.
   </footer>
@@ -793,12 +914,12 @@
   <!-- Mova welcome modal (first-time visitors) -->
   <div id="movaWelcomeModalOverlay" class="mova-welcome-modal-overlay" aria-hidden="true">
     <div class="mova-welcome-modal" role="dialog" aria-modal="true" aria-labelledby="movaWelcomeTitle" aria-describedby="movaWelcomeDesc">
-      <h2 id="movaWelcomeTitle">Mova: language meets culture — Welcome</h2>
-      <div id="movaWelcomeDesc" class="muted">A quick introduction to how Mova blends language learning with short cultural moments. Tap play to hear a greeting and explore a cultural snapshot.</div>
+      <h2 id="movaWelcomeTitle" style="text-align:center; width:100%; margin:0 auto;">Welcome to Mova! Where language meets culture</h2>
+      <div id="movaWelcomeDesc" class="muted" style="text-align:center">At Mova, we pair short lessons with cultural context to help meaning stick.</div>
       <div class="mova-welcome-media" style="margin-top:12px">
         <img id="movaCultureImg" data-src="assets/images/culture.jpg" alt="Cultural snapshot image" loading="lazy" />
         <div style="flex:1">
-          <p id="movaWelcomeText">Mova: language meets culture — We pair short lessons with cultural context to help meaning stick.</p>
+          <p id="movaWelcomeText">Click the image on the left to learn a cultural fact</p>
           <div style="margin-top:8px">
             <button id="movaPlayAudio" class="mova-welcome-audio-btn btn blue">🔊 Play greeting</button>
             <button id="movaCloseIntro" class="btn ghost">Close</button>
@@ -929,8 +1050,21 @@ function buildAlphabetGrid(){
   });
 }
 function playLetter(i){ const L = ALPHABET[i]; if(!L) return; const say = L.speak || L.u; try{ speak(say); }catch(e){ beep(true); } }
-function openAlphabetIntro(){ const ov = document.getElementById('alphabetOverlay'); if(!ov) return; ov.classList.add('open'); try{ document.getElementById('alphIntroView').style.display='block'; document.getElementById('alphLessonView').style.display='none'; }catch(e){} }
-function closeAlphabet(){ const ov = document.getElementById('alphabetOverlay'); if(ov) ov.classList.remove('open'); }
+function openAlphabetIntro(){
+  // SPA-aware opener: record previous view and open the alphabet SPA
+  try{ const active = $$('.view').find(v=>v.classList.contains('active')); window.__previousView = active ? `#${active.id}` : '#home'; }catch(e){ window.__previousView = '#home'; }
+  try{ setView('#alphabet'); buildAlphabetGrid(); document.getElementById('alphIntroView').style.display='block'; document.getElementById('alphLessonView').style.display='none'; }catch(e){ console.error('openAlphabetIntro', e); }
+}
+function closeAlphabet(){
+  // return to the previous view (SPA) if available
+  try{
+    // hide internal alphabet views to reset state
+    const intro = document.getElementById('alphIntroView'); if(intro) intro.style.display='block';
+    const lesson = document.getElementById('alphLessonView'); if(lesson) lesson.style.display='none';
+    const ac = document.getElementById('alphComplete'); if(ac) ac.style.display='none';
+  }catch(e){}
+  try{ setView(window.__previousView || '#home'); }catch(e){ setView('#home'); }
+}
 let ALPH_SESSION = { order:[], idx:0 };
 function startAlphabetExercise(){
   const pool = [...ALPHABET];
@@ -1045,6 +1179,7 @@ document.addEventListener('click', (e)=>{
   if(!(t instanceof Element)) return;
   if(t.id==='btnAlphabetIntro'){ openAlphabetIntro(); }
   if(t.id==='alphClose'){ closeAlphabet(); }
+  if(t.id==='alphabetBack'){ closeAlphabet(); }
   if(t.id==='alphStart'){ startAlphabetExercise(); }
   if(t.id==='alphPlay'){ const L = ALPH_SESSION.order[ALPH_SESSION.idx]; if(L) try{ speak(L.speak || L.u); }catch(e){ beep(true); } }
   if(t.id==='alphNext'){ ALPH_SESSION.idx++; if(ALPH_SESSION.idx>=ALPH_SESSION.order.length){ showAlphComplete(); } else { showAlphStep(); } }
@@ -1928,6 +2063,8 @@ function getUnlockedDeckKeys(){
 
 // Start a flashcards quick session using unlocked lessons as the source
 function startFlashcards(){
+  // If the legacy flashcard overlay has been removed, use the SPA flashcards view
+  if(!document.getElementById('flashcardOverlay')){ startFlashcardsSPA(); return; }
   let decks = getUnlockedDeckKeys();
   if(!decks || decks.length===0){ decks = ['greetings','basics_core']; }
   const steps = 10;
@@ -1952,7 +2089,10 @@ function buildWordPairs(){
 }
 
 function startWordMatch(){
-  const ov = document.getElementById('wordMatchOverlay'); if(!ov) return; ov.classList.add('open'); ov.setAttribute('aria-hidden','false');
+  const ov = document.getElementById('wordMatchOverlay');
+  // If the legacy overlay DOM is missing, fall back to the SPA word-match view
+  if(!ov){ startWordMatchSPA(); return; }
+  ov.classList.add('open'); ov.setAttribute('aria-hidden','false');
   // build pairs and shuffle positions
   WM.pairs = buildWordPairs();
   WM.leftOrder = shuffle(WM.pairs.map((p,i)=> ({id:i, text:p.uk}))); WM.rightOrder = shuffle(WM.pairs.map((p,i)=> ({id:i, text:p.en})));
@@ -2019,6 +2159,84 @@ function closeFlashcardOverlay(){ const ov = document.getElementById('flashcardO
 
 document.getElementById('wmClose')?.addEventListener('click', ()=> closeWordMatch());
 
+// SPA variants: render Flashcards and Word Match as full-screen in-app views (no overlays)
+function startFlashcardsSPA(){
+  // remember previous view
+  try{ const active = $$('.view').find(v=>v.classList.contains('active')); window.__previousView = active ? `#${active.id}` : '#home'; }catch(e){ window.__previousView = '#home'; }
+  let decks = getUnlockedDeckKeys(); if(!decks || decks.length===0) decks = ['greetings','basics_core']; const steps = 10;
+  // initialize CURRENT for a quick flash session
+  CURRENT.skillId = '__quick__'; CURRENT.quickName = 'Flashcards'; CURRENT.quickDeckKeys = decks; CURRENT.hearts = 0; CURRENT.stepsTotal = steps; CURRENT.stepsDone = 0; CURRENT.correct = 0; CURRENT.wrong = 0; CURRENT.modeOverride = 'flashcard'; CURRENT.results = [];
+  const base = sampleFromDeckKeys(decks, 36);
+  CURRENT.tasks = safeBuildTasks(base, steps, 'flashcard');
+  if(!CURRENT.tasks || CURRENT.tasks.length===0){ const seed = sampleFromDeckKeys(['greetings','basics_core','basics_pronouns_q'], 24); CURRENT.tasks = safeBuildTasks(seed, steps, 'flashcard'); }
+  CURRENT.idx = 0;
+  setView('#flashcards');
+  renderFlashcardSPA();
+}
+
+function renderFlashcardSPA(){
+  const t = CURRENT.tasks && CURRENT.tasks[CURRENT.idx];
+  const ukEl = document.getElementById('flashcardUK'); const enEl = document.getElementById('flashcardEN');
+  const showBtn = document.getElementById('flashShowAnswer'); const nextBtn = document.getElementById('flashNextCard');
+  const prog = document.getElementById('flashProgressText');
+  // render shared segments into the flash-specific container
+  renderSegments('#segmentsFlash');
+  if(!t){ if(ukEl) ukEl.textContent = 'No cards available'; if(enEl) enEl.style.display='none'; if(prog) prog.textContent = `0 / ${CURRENT.stepsTotal||0}`; return; }
+  if(prog) prog.textContent = `${(CURRENT.idx||0)+1} / ${CURRENT.stepsTotal||0}`;
+  if(ukEl){ ukEl.textContent = t.uk || ''; ukEl.onclick = ()=> speak(t.speak || t.uk); }
+  if(enEl){ enEl.textContent = t.en || ''; enEl.style.display = 'none'; }
+  if(showBtn){ showBtn.disabled = false; showBtn.onclick = ()=>{ if(enEl) enEl.style.display='block'; showBtn.disabled=true; }; }
+  if(nextBtn){ nextBtn.onclick = ()=>{
+    // mark this card as seen and update segments
+    try{ CURRENT.results = Array.isArray(CURRENT.results) ? CURRENT.results : []; CURRENT.results[CURRENT.idx] = true; }catch(e){}
+    CURRENT.stepsDone = Math.min((CURRENT.stepsDone||0)+1, CURRENT.stepsTotal||0);
+    if(CURRENT.stepsDone >= CURRENT.stepsTotal){ endLesson(true); return; }
+    CURRENT.idx = Math.min((CURRENT.idx||0)+1, CURRENT.tasks.length-1);
+    renderFlashcardSPA();
+  }; }
+  // autoplay uk word
+  try{ speak(t.speak || t.uk); }catch(e){}
+}
+
+// Wire back button inside SPA flashcards
+document.getElementById('flashBack')?.addEventListener('click', ()=>{ try{ setView(window.__previousView || '#home'); }catch(e){ setView('#home'); } });
+
+// Word Match SPA: similar to overlay version but renders into SPA containers
+function startWordMatchSPA(){ try{ const active = $$('.view').find(v=>v.classList.contains('active')); window.__previousView = active ? `#${active.id}` : '#home'; }catch(e){ window.__previousView = '#home'; }
+  setView('#wordmatch_spa');
+  WM.pairs = buildWordPairs(); WM.leftOrder = shuffle(WM.pairs.map((p,i)=> ({id:i, text:p.uk}))); WM.rightOrder = shuffle(WM.pairs.map((p,i)=> ({id:i, text:p.en}))); WM.matchedCount = 0; WM.selected = null; WM.seconds = 0;
+  clearInterval(WM.timerId); WM.timerId = setInterval(()=>{ WM.seconds++; const t = document.getElementById('wmTimerSpa'); if(t) t.textContent = `Time: ${WM.seconds} s`; }, 1000);
+  renderWordMatchSPA();
+}
+
+function renderWordMatchSPA(){ const left = document.getElementById('wmLeftSpa'); const right = document.getElementById('wmRightSpa'); if(!left||!right) return; left.innerHTML=''; right.innerHTML='';
+  WM.leftOrder.forEach(item=>{ const b = document.createElement('button'); b.className='wm-btn'; b.textContent = item.text; b.dataset.id = item.id; b.dataset.side='left'; b.addEventListener('click', ()=> onWMClickSpa(b)); left.appendChild(b); });
+  WM.rightOrder.forEach(item=>{ const b = document.createElement('button'); b.className='wm-btn'; b.textContent = item.text; b.dataset.id = item.id; b.dataset.side='right'; b.addEventListener('click', ()=> onWMClickSpa(b)); right.appendChild(b); });
+  const t = document.getElementById('wmTimerSpa'); if(t) t.textContent = `Time: ${WM.seconds} s`;
+}
+
+function onWMClickSpa(btn){ if(btn.classList.contains('matched')) return; const side = btn.dataset.side; const id = btn.dataset.id; if(!WM.selected){ btn.classList.add('selected'); WM.selected = {btn, id, side}; return; } if(WM.selected.btn === btn){ btn.classList.remove('selected'); WM.selected = null; return; } if(WM.selected.side === side){ WM.selected.btn.classList.remove('selected'); btn.classList.add('selected'); WM.selected = {btn, id, side}; return; }
+  const a = WM.selected; const b = btn; const match = (a.id === b.dataset.id);
+  if(match){ a.btn.classList.remove('selected'); b.classList.remove('selected'); a.btn.classList.add('matched-anim'); b.classList.add('matched-anim'); setTimeout(()=>{ a.btn.classList.remove('matched-anim'); b.classList.remove('matched-anim'); a.btn.classList.add('matched'); b.classList.add('matched'); a.btn.disabled=true; b.disabled=true; WM.matchedCount++; if(WM.matchedCount >= WM.pairs.length){ clearInterval(WM.timerId); WM.timerId=null; setTimeout(()=> showWMWinSpa(), 300); } }, 420); WM.selected = null; } else { a.btn.classList.add('wrong'); b.classList.add('wrong'); setTimeout(()=>{ a.btn.classList.remove('wrong','selected'); b.classList.remove('wrong'); WM.selected = null; }, 600); } }
+
+function showWMWinSpa(){ const area = document.querySelector('#wordmatch_spa .wordmatch-card') || document.getElementById('wordmatch_spa'); if(!area) return; const content = document.createElement('div'); content.className='wm-win'; content.innerHTML = `<h2>You won!</h2><p class="muted">Time taken: ${WM.seconds} s</p><div style="margin-top:12px"><button id="wmCloseWinSpa" class="btn primary">Close</button></div>`; area.appendChild(content); document.getElementById('wmCloseWinSpa').addEventListener('click', ()=>{ content.remove(); clearInterval(WM.timerId); WM.timerId=null; setView(window.__previousView || '#home'); }); }
+
+// Cultural Fact overlay controls (Tryzub sample)
+// Open cultural FACT as a full SPA view (like Basics 1) and remember last view to go back
+function openCulturalFact(){
+  try{ closeWelcomeModal(); const b = document.getElementById('movaWelcomeBanner'); if(b) b.style.display='none'; }catch(e){}
+  // record the currently active view so Close can return
+  try{ const active = $$('.view').find(v=>v.classList.contains('active')); window.__previousView = active ? `#${active.id}` : '#home'; }catch(e){ window.__previousView = '#home'; }
+  setView('#cultural');
+}
+function closeCulturalFact(){ try{ setView(window.__previousView || '#home'); }catch(e){ setView('#home'); } }
+
+document.getElementById('culturalBack')?.addEventListener('click', ()=> closeCulturalFact());
+document.getElementById('culturalPrev')?.addEventListener('click', ()=> { alert('Prev Cultural Fact — placeholder'); });
+document.getElementById('culturalNext')?.addEventListener('click', ()=> { alert('Next Cultural Fact — placeholder'); });
+document.getElementById('culturalShare')?.addEventListener('click', ()=>{ navigator.clipboard && navigator.clipboard.writeText(location.href).then(()=>toast('Link copied'), ()=>toast('Copy failed')); });
+document.getElementById('culturalCloseAction')?.addEventListener('click', ()=>{ closeCulturalFact(); });
+
 /* ========================
    RENDER: LESSON
    ======================== */
@@ -2034,8 +2252,14 @@ function setView(id){
   try{ document.body.classList.remove('nav-open'); const nt = document.getElementById('btnNavToggle'); if(nt) nt.setAttribute('aria-expanded','false'); }catch(e){}
 }
 function renderHearts(){ const wrap = $('#hearts'); if(!wrap) return; wrap.innerHTML = ""; for(let i=0;i<5;i++){ const d = document.createElement('div'); d.className = 'h '+(i<CURRENT.hearts?'on':''); wrap.appendChild(d); } }
-function renderSegments(){
-  const wrap = $('#segments'); wrap.innerHTML = "";
+function renderSegments(target){
+  // target may be a selector string or an Element; default to lesson segments
+  let wrap;
+  if(!target){ wrap = $('#segments'); }
+  else if(typeof target === 'string'){ wrap = document.querySelector(target); }
+  else { wrap = target; }
+  if(!wrap) return;
+  wrap.innerHTML = "";
   const res = Array.isArray(CURRENT.results) ? CURRENT.results : [];
   for(let i=0;i<CURRENT.stepsTotal;i++){
     const seg = document.createElement('div'); seg.className = 'seg';
@@ -2063,9 +2287,16 @@ function renderTask(){
       try{ document.getElementById('hearts').style.display='none'; document.getElementById('segments').style.display='none'; }catch(e){}
       try{ document.querySelector('#lesson .action-bar').style.display='none'; }catch(e){}
       $('#mcWrap').style.display='none'; $('#wbWrap').style.display='none'; $('#mcWrap').innerHTML = "";
+      // If the legacy flash overlay or its view is missing, fall back to the SPA flashcards view
+      const ov = document.getElementById('flashcardOverlay');
+      const view = document.getElementById('flashcardView');
+      if(!ov || !view){
+        // Switch to SPA flashcards for consistent UX (this will re-init the flash session)
+        try{ startFlashcardsSPA(); }catch(e){ console.error('Fallback to SPA flashcards failed', e); }
+        return;
+      }
       // open overlay
-      const ov = document.getElementById('flashcardOverlay'); if(ov){ ov.classList.add('open'); ov.setAttribute('aria-hidden','false'); }
-      const view = document.getElementById('flashcardView'); if(!view) return;
+      ov.classList.add('open'); ov.setAttribute('aria-hidden','false');
       view.innerHTML = '';
       // Render the flashcard card centered in the overlay
       const card = document.createElement('div'); card.className = 'flashcard-card';
@@ -2291,11 +2522,12 @@ $('#btnAudio').addEventListener('click', ()=> startQuickSession({name:"Audio Dri
 $('#btnReading').addEventListener('click', ()=> startQuickSession({name:"EN→UK (MC)", decks: GROUPS.vocab, steps:10, hearts:5, override: 'en-uk-mc'}));
 $('#btnGrammar').addEventListener('click', ()=> startQuickSession({name:"Grammar Review", decks: GROUPS.grammar, steps:10, hearts:5}));
 $('#btnMixed').addEventListener('click', ()=> startQuickSession({name:"Mixed Review", decks: [...GROUPS.vocab, ...GROUPS.grammar], steps:10, hearts:5}));
-$('#btnFlashcards').addEventListener('click', ()=> startFlashcards());
-$('#btnFlashcardsMix').addEventListener('click', ()=> startQuickSession({ name: 'Flashcards — Mixed', decks: Object.keys(BUILTIN_DECKS), steps: 10, hearts:0, override: 'flashcard' }));
-  
-  // Word Match: open the game overlay and start
-  $('#btnWordMatch').addEventListener('click', ()=> startWordMatch());
+$('#btnFlashcards').addEventListener('click', ()=> startFlashcardsSPA());
+// If a mixed flashcards button exists, reuse SPA flow as well
+$('#btnFlashcardsMix')?.addEventListener('click', ()=> startFlashcardsSPA());
+
+// Word Match: open the SPA word match view and start
+$('#btnWordMatch').addEventListener('click', ()=> startWordMatchSPA());
 
 $('#btnIDK').addEventListener('click', idk);
 $('#btnCheck').addEventListener('click', checkAnswer);
@@ -2422,8 +2654,36 @@ function setLastVisit(){ try{ localStorage.setItem(MOVA_KEYS.last, isoNow()); }c
 
 function showBannerWhenReturning(){ const banner = document.getElementById('movaWelcomeBanner'); const when = document.getElementById('movaBannerWhen'); if(!banner) return; banner.style.display='flex'; const last = localStorage.getItem(MOVA_KEYS.last); when.textContent = last ? `(last: ${new Date(last).toLocaleDateString()})` : ''; analytics.track('mova_banner_shown', { last }); }
 
+function showBannerWhenReturning(){
+  const banner = document.getElementById('movaWelcomeBanner');
+  const when = document.getElementById('movaBannerWhen');
+  if(!banner) return;
+  // clear any prior auto-hide timer
+  try{ const prev = banner.dataset.autoHideTimer; if(prev) { clearTimeout(parseInt(prev)); delete banner.dataset.autoHideTimer; } }catch(e){}
+  banner.style.display='flex';
+  const last = localStorage.getItem(MOVA_KEYS.last);
+  when.textContent = last ? `(last: ${new Date(last).toLocaleDateString()})` : '';
+  analytics.track('mova_banner_shown', { last });
+  // auto-hide after 5 seconds (5000ms)
+  try{
+    const tid = setTimeout(()=>{ try{ banner.style.display='none'; analytics.track('mova_banner_auto_hidden'); }catch(e){} }, 5000);
+    banner.dataset.autoHideTimer = String(tid);
+  }catch(e){}
+}
+
 function openWelcomeModal(){ const ov = document.getElementById('movaWelcomeModalOverlay'); if(!ov) return; ov.classList.add('open'); ov.setAttribute('aria-hidden','false'); trapFocusInModal(ov); // lazy load image
   const img = document.getElementById('movaCultureImg'); if(img && img.dataset && img.dataset.src){ img.src = img.dataset.src; }
+  // make the image open the Cultural Fact view when clicked (Tryzub sample)
+  try{
+    if(img){ img.style.cursor = 'pointer'; img.title = 'Open cultural fact: Tryzub'; img.setAttribute('role','button'); img.tabIndex = 0; // attach idempotent handlers
+      img.removeEventListener('click', window.__openCulturalClickHandler);
+      img.removeEventListener('keydown', window.__openCulturalKeyHandler);
+      window.__openCulturalClickHandler = function(){ openCulturalFact(); };
+      window.__openCulturalKeyHandler = function(e){ if(e.key==='Enter' || e.key===' '){ e.preventDefault(); openCulturalFact(); } };
+      img.addEventListener('click', window.__openCulturalClickHandler);
+      img.addEventListener('keydown', window.__openCulturalKeyHandler);
+    }
+  }catch(e){}
   analytics.track('mova_modal_opened', { first: localStorage.getItem(MOVA_KEYS.first) });
 }
 
@@ -2457,8 +2717,17 @@ document.getElementById('movaPlayAudio').addEventListener('click', function(){
 
 // Wire modal buttons & banner
 document.getElementById('movaCloseIntro').addEventListener('click', ()=>{ const cb = document.getElementById('movaOptOut'); if(cb && cb.checked){ try{ localStorage.setItem(MOVA_KEYS.show, 'false'); /* If user is authenticated: sync to server here (POST /api/user/prefs) */ }catch(e){} } closeWelcomeModal(); setLastVisit(); });
-document.getElementById('movaOpenIntro').addEventListener('click', ()=>{ openWelcomeModal(); });
-document.getElementById('movaDismissBanner').addEventListener('click', ()=>{ const b=document.getElementById('movaWelcomeBanner'); if(b) b.style.display='none'; analytics.track('mova_banner_dismissed'); });
+document.getElementById('movaOpenIntro').addEventListener('click', ()=>{ 
+  const b=document.getElementById('movaWelcomeBanner'); 
+  try{ if(b){ const prev = b.dataset.autoHideTimer; if(prev){ clearTimeout(parseInt(prev)); delete b.dataset.autoHideTimer; } b.style.display='none'; } }catch(e){}
+  openWelcomeModal();
+});
+document.getElementById('movaDismissBanner').addEventListener('click', ()=>{ 
+  const b=document.getElementById('movaWelcomeBanner'); 
+  try{ if(b){ const prev = b.dataset.autoHideTimer; if(prev) { clearTimeout(parseInt(prev)); delete b.dataset.autoHideTimer; } b.style.display='none'; } 
+  }catch(e){}
+  analytics.track('mova_banner_dismissed');
+});
 
 // On page load decide whether to show modal or banner
 (function initMovaWelcome(){ try{
